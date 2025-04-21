@@ -1,0 +1,12 @@
+#Jenkins info - https://github.com/jenkinsci/docker/blob/master/README.md
+
+services:
+  jenkins:
+    build: .
+    container_name: jenkins
+    restart: "on-failure"
+    ports:
+      - "9080:8080"
+      - "50000:50000"
+    env_file:
+      ./env.properties

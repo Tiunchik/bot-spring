@@ -1,0 +1,4 @@
+services:
+  bot-spring:
+    build: .
+    restart: "no"
