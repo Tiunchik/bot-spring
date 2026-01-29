@@ -7,6 +7,7 @@ import org.bot.spring.dto.VideoFormatDto;
 import org.bot.spring.service.TelegramMessageService;
 import org.bot.spring.service.YtDlpService;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 import java.io.File;
 import java.util.List;
@@ -21,8 +22,7 @@ public class YouTubeMessageHandler implements MessageHandler {
     private final TelegramMessageService telegramMessageService;
 
     private static final Pattern YOUTUBE_PATTERN = Pattern.compile(
-            ".*(youtube\\.com|youtu\\.be).*",
-            Pattern.CASE_INSENSITIVE
+            "(?:.|\\n|\\r)*(youtube\\.com|youtu\\.be)(?:.|\\n|\\r)*"
     );
 
     @Override
@@ -34,22 +34,23 @@ public class YouTubeMessageHandler implements MessageHandler {
     }
 
     @Override
-    public void handle(String url, MessageContext context) {
+    public void handle(String text, MessageContext context) {
         try {
             // Шаг 1: Извлечь URL (если передан полный текст)
-            String videoUrl = ytDlpService.extractUrl(url);
+            String videoUrl = ytDlpService.extractUrl(text);
             if (videoUrl == null) {
-                videoUrl = url;
+                videoUrl = text;
             }
+            String textWithoutUrl = text.replace(videoUrl, "");
 
             log.info("Обработка YouTube видео: {}", videoUrl);
 
             // Шаг 2: Получить список доступных форматов
-            telegramMessageService.sendTextMessage(context.getChatId(), "Получаю список форматов...");
+            Message message = telegramMessageService.sendTextMessage(context.getChatId(), "Получаю список форматов...");
             List<VideoFormatDto> formats = ytDlpService.getAvailableFormats(videoUrl);
 
             if (formats.isEmpty()) {
-                telegramMessageService.sendTextMessage(context.getChatId(), "Не удалось получить форматы видео.");
+                telegramMessageService.editOrsendNewTextMessage(context.getChatId(), message.getMessageId(),"Не удалось получить форматы видео.");
                 return;
             }
 
@@ -57,17 +58,19 @@ public class YouTubeMessageHandler implements MessageHandler {
             VideoFormatDto selectedFormat = ytDlpService.selectBestFormat(formats);
 
             if (selectedFormat == null) {
-                telegramMessageService.sendTextMessage(
+                telegramMessageService.editOrsendNewTextMessage(
                         context.getChatId(),
-                        "Не найден подходящий формат (mp4, 720p)."
+                        message.getMessageId(),
+                        "Не найден подходящий формат."
                 );
                 return;
             }
 
             // Проверить размер файла
             if (ytDlpService.isFileSizeExceeded(selectedFormat.getFileSizeInMB())) {
-                telegramMessageService.sendTextMessage(
+                telegramMessageService.editOrsendNewTextMessage(
                         context.getChatId(),
+                        message.getMessageId(),
                         String.format(
                                 "Размер файла (%.2f MB) превышает максимально допустимый (%.2f MB).",
                                 selectedFormat.getFileSizeInMB(),
@@ -84,14 +87,14 @@ public class YouTubeMessageHandler implements MessageHandler {
                     selectedFormat.getFileSizeInMB());
 
             // Шаг 4: Загрузить видео
-            telegramMessageService.sendTextMessage(
+            telegramMessageService.editOrsendNewTextMessage(
                     context.getChatId(),
+                    message.getMessageId(),
                     String.format("Загружаю видео (формат %s, %s)...",
                             selectedFormat.getContainer(),
                             selectedFormat.getResolution())
             );
 
-            Thread.sleep(500);
             String filePath = ytDlpService.downloadVideo(
                     videoUrl,
                     selectedFormat.getId(),
@@ -102,7 +105,15 @@ public class YouTubeMessageHandler implements MessageHandler {
 
             // Шаг 5: Отправить результат
             File videoFile = new File(filePath);
-            telegramMessageService.sendDocument(context.getChatId(), videoFile);
+            String caption;
+            if (textWithoutUrl.isBlank()) {
+                caption = "Video from @" + context.getUsername();
+            } else {
+                caption = "Video from @" + context.getUsername() + ": " + textWithoutUrl;
+            }
+            telegramMessageService.sendVideo(context.getChatId(), videoFile, caption);
+            telegramMessageService.deleteMessage(context.getChatId(), message.getMessageId());
+            telegramMessageService.deleteMessage(context.getChatId(), context.getMessageId());
 
             // Удалить временный файл
             ytDlpService.deleteFile(filePath);

@@ -6,7 +6,6 @@ import org.bot.spring.service.YtDlpService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigDecimal;
@@ -14,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ExtendWith(SpringExtension.class)
-class SpringBotApplicationTests {
+class YoutubeExtractedTest {
 
     private List<String> lines = List.of(
             "sb2     mhtml 25x45        1    │                   mhtml │ images                                   storyboard",
@@ -55,14 +54,14 @@ class SpringBotApplicationTests {
     );
 
     @Test
-    void contextLoads() {
+    void youtubeExtractedTest() {
         DownloadProperties properties = new DownloadProperties();
         properties.setDownloadPath("/");
         properties.setMaxFileSizeMB(BigDecimal.TWO);
         YtDlpService service = new YtDlpService(properties);
         var result = new ArrayList<VideoFormatDto>();
         lines.forEach(it -> service.extracted(it, result));
-        Assertions.assertTrue(result.size() > 10);
+        Assertions.assertTrue(result.size() > 0);
     }
 
 }

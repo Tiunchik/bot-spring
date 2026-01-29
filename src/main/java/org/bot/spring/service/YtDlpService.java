@@ -221,7 +221,7 @@ public class YtDlpService {
         }
         
         // Паттерн для поиска URL
-        Pattern urlPattern = Pattern.compile("(https?://[^\\s]+)");
+        Pattern urlPattern = Pattern.compile("(https?:\\/\\/[^\\s!,]+)");
         Matcher matcher = urlPattern.matcher(text);
         
         if (matcher.find()) {
@@ -230,4 +230,6 @@ public class YtDlpService {
         
         return null;
     }
+
+
 }

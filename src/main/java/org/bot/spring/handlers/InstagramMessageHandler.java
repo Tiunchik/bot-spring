@@ -29,7 +29,7 @@ public class InstagramMessageHandler implements MessageHandler {
     }
 
     @Override
-    public void handle(String url, MessageContext context) {
+    public void handle(String text, MessageContext context) {
         log.info("Обработка Instagram ссылки от пользователя: {}", context.getUsername());
         telegramMessageService.sendTextMessage(
                 context.getChatId(),

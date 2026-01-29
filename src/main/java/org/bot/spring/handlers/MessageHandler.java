@@ -4,5 +4,5 @@ import org.bot.spring.dto.MessageContext;
 
 public interface MessageHandler {
     boolean canHandle(String text);
-    void handle(String url, MessageContext context);
+    void handle(String text, MessageContext context);
 }
