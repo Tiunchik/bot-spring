@@ -1,14 +1,29 @@
-FROM bellsoft/liberica-openjdk-alpine:24-cds
+FROM alpine:latest
+
+# Установка зависимостей
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    ffmpeg \
+    curl \
+    ca-certificates
+
+# Установка yt-dlp через pip
+RUN apk add --no-cache yt-dlp
+
+# Проверка установки
+RUN yt-dlp --version
+RUN ffmpeg -version
+
+RUN apk add --no-cache openjdk25-jdk
+
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+ENV PATH="$JAVA_HOME/bin:${PATH}"
 
 ENV SERVICE_NAME=bot-spring
-ENV LOG_PATH=./docker/logs
+ARG JAR_FILE=build/libs/$SERVICE_NAME*.jar
 
-RUN mkdir -p ${LOG_PATH}/${SERVICE_NAME}/ && ulimit -s 65536
-RUN addgroup -S spring && adduser -S spring -G spring
-RUN chown -R spring:spring ${LOG_PATH}/${SERVICE_NAME}/
-USER spring:spring
-ARG JAR_FILE=build/libs/${SERVICE_NAME}*.jar
 COPY ${JAR_FILE} ${SERVICE_NAME}.jar
 
-ENV JAVA_OPTS="-Xss1m -Xms128m -Xmx256m -Duser.timezone=UTC"
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /$SERVICE_NAME.jar"]
+ENV JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /$SERVICE_NAME.jar"]

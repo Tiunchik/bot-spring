@@ -1,0 +1,7 @@
+services:
+  bot-spring:
+    build: ./../
+    container_name: bot-spring
+    ports:
+      - "8080:8080"
+      - "5005:5005"

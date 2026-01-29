@@ -1,5 +1,3 @@
-
-
 spring:
   application:
     name: spring-bot
@@ -12,7 +10,15 @@ server:
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
-    min-response-size: 30
+  min-response-size: 30
   http2:
     enabled: true
 
+bot:
+  name: '@tg_tiunchik_bot' #Not for code, just don't forget bot nickname
+  token: 'TEST'
+  allowed-users: tiunchik_maksim;Daniils_Loputevs
+
+download:
+  max-file-size-mb: 50
+  download-path: /tmp/
