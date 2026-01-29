@@ -3,9 +3,16 @@ package org.bot.spring.handlers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot.spring.dto.MessageContext;
+import org.bot.spring.dto.VideoFormatDto;
 import org.bot.spring.service.TelegramMessageService;
+import org.bot.spring.service.YtDlpService;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 
+import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -13,10 +20,11 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class InstagramMessageHandler implements MessageHandler {
 
+    private final YtDlpService ytDlpService;
     private final TelegramMessageService telegramMessageService;
 
     private static final Pattern INSTAGRAM_PATTERN = Pattern.compile(
-            ".*instagram\\.com.*",
+            "(?:.|\\n|\\r)*(instagram\\.com)(?:.|\\n|\\r)*",
             Pattern.CASE_INSENSITIVE
     );
 
@@ -30,10 +38,67 @@ public class InstagramMessageHandler implements MessageHandler {
 
     @Override
     public void handle(String text, MessageContext context) {
-        log.info("Обработка Instagram ссылки от пользователя: {}", context.getUsername());
-        telegramMessageService.sendTextMessage(
-                context.getChatId(),
-                "Я пока не могу скачивать файлы из Instagram."
-        );
+        try {
+            // Шаг 1: Извлечь URL (если передан полный текст)
+            String videoUrl = ytDlpService.extractUrl(text);
+            if (videoUrl == null) {
+                videoUrl = text;
+            }
+            String textWithoutUrl = text.replace(videoUrl, "");
+            Message message = telegramMessageService.sendTextMessage(context.getChatId(), "Пытаюсь начать скачивание видео...");
+
+            log.info("Обработка Instagram видео: {}", videoUrl);
+
+
+            String filePath = ytDlpService.downloadInstagramVideo(
+                    videoUrl,
+                     context.getChatId(),
+                    context.getMessageId(),
+                    context.getUsername()
+            );
+
+            VideoFormatDto maxSize = ytDlpService.getMaxVideoSize(videoUrl);
+            // Проверить размер файла
+            if (ytDlpService.isFileSizeExceeded(maxSize.getFileSizeInMB().divide(BigDecimal.TWO, RoundingMode.DOWN))) {
+                telegramMessageService.editOrsendNewTextMessage(
+                        context.getChatId(),
+                        message.getMessageId(),
+                        String.format(
+                                "Размер файла (%.2f MB) превышает максимально допустимый (%.2f MB).",
+                                maxSize.getFileSizeInMB(),
+                                ytDlpService.getMaxFileSize()
+                        )
+                );
+                return;
+            }
+
+            // Отправить результат
+            File videoFile = new File(filePath);
+            String caption;
+            if (textWithoutUrl.isBlank()) {
+                caption = "Video from @" + context.getUsername();
+            } else {
+                caption = "Video from @" + context.getUsername() + ": " + textWithoutUrl;
+            }
+            telegramMessageService.sendVideo(context.getChatId(), videoFile, caption);
+            telegramMessageService.deleteMessage(context.getChatId(), message.getMessageId());
+            telegramMessageService.deleteMessage(context.getChatId(), context.getMessageId());
+
+            // Удалить временный файл
+            ytDlpService.deleteFile(filePath);
+
+            log.info("Видео успешно отправлено и удалено: {}", filePath);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Процесс был прерван", e);
+            telegramMessageService.sendTextMessage(context.getChatId(), "Процесс загрузки был прерван.");
+        } catch (Exception e) {
+            log.error("Ошибка при обработке YouTube видео", e);
+            telegramMessageService.sendTextMessage(
+                    context.getChatId(),
+                    "Произошла ошибка при загрузке видео: " + e.getMessage()
+            );
+        }
     }
 }

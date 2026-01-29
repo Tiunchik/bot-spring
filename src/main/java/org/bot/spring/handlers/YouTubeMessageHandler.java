@@ -95,7 +95,7 @@ public class YouTubeMessageHandler implements MessageHandler {
                             selectedFormat.getResolution())
             );
 
-            String filePath = ytDlpService.downloadVideo(
+            String filePath = ytDlpService.downloadYoutubeVideo(
                     videoUrl,
                     selectedFormat.getId(),
                     context.getChatId(),
