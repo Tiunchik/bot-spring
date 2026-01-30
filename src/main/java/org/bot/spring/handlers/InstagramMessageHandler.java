@@ -15,6 +15,8 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static java.util.Objects.nonNull;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -44,11 +46,10 @@ public class InstagramMessageHandler implements MessageHandler {
             if (videoUrl == null) {
                 videoUrl = text;
             }
-            String textWithoutUrl = text.replace(videoUrl, "");
-            Message message = telegramMessageService.sendTextMessage(context.getChatId(), "Пытаюсь начать скачивание видео...");
-
+            String textWithOutUrl = text.replace(videoUrl, "");
             log.info("Обработка Instagram видео: {}", videoUrl);
 
+            Message message = telegramMessageService.sendTextMessage(context.getChatId(), "Пытаюсь начать скачивание видео...");
 
             String filePath = ytDlpService.downloadInstagramVideo(
                     videoUrl,
@@ -74,16 +75,14 @@ public class InstagramMessageHandler implements MessageHandler {
 
             // Отправить результат
             File videoFile = new File(filePath);
-            String caption;
-            if (textWithoutUrl.isBlank()) {
-                caption = "Video from @" + context.getUsername();
+            String messageText = "@" + context.getUsername() + ": " + textWithOutUrl;
+            Object videoSendResult = telegramMessageService.sendVideo(context.getChatId(), videoFile, videoUrl);
+            if (nonNull(videoSendResult)) {
+                telegramMessageService.editTextMessage(context.getChatId(), message.getMessageId(), messageText);
+                telegramMessageService.deleteMessage(context.getChatId(), context.getMessageId());
             } else {
-                caption = "Video from @" + context.getUsername() + ": " + textWithoutUrl;
+                telegramMessageService.editOrsendNewTextMessage(context.getChatId(), context.getMessageId(), "Процесс загрузки был прерван.");
             }
-            telegramMessageService.sendVideo(context.getChatId(), videoFile, caption);
-            telegramMessageService.deleteMessage(context.getChatId(), message.getMessageId());
-            telegramMessageService.deleteMessage(context.getChatId(), context.getMessageId());
-
             // Удалить временный файл
             ytDlpService.deleteFile(filePath);
 
@@ -92,11 +91,12 @@ public class InstagramMessageHandler implements MessageHandler {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Процесс был прерван", e);
-            telegramMessageService.sendTextMessage(context.getChatId(), "Процесс загрузки был прерван.");
+            telegramMessageService.editOrsendNewTextMessage(context.getChatId(), context.getMessageId(), "Процесс загрузки был прерван.");
         } catch (Exception e) {
             log.error("Ошибка при обработке YouTube видео", e);
-            telegramMessageService.sendTextMessage(
+            telegramMessageService.editOrsendNewTextMessage(
                     context.getChatId(),
+                    context.getMessageId(),
                     "Произошла ошибка при загрузке видео: " + e.getMessage()
             );
         }

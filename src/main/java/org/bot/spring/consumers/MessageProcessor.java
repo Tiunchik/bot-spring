@@ -58,6 +58,16 @@ public class MessageProcessor implements LongPollingUpdateConsumer {
             return;
         }
 
+        // Проверка типа сообщения - не должно содержать видео, аудио, фото, документа и стикера
+        if (receivedMessage.hasVideo()
+                || receivedMessage.hasAudio()
+                || receivedMessage.hasPhoto()
+                || receivedMessage.hasDocument()
+                || receivedMessage.hasSticker()) {
+            log.info("Сообщение не должно содержать видео, аудио, фото, документа и стикера");
+            return;
+        }
+
         String text = receivedMessage.getText();
         long chatId = receivedMessage.getChatId();
         

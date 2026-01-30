@@ -178,7 +178,7 @@ public class YtDlpService {
     public VideoFormatDto selectBestFormat(List<VideoFormatDto> formats) {
         return formats.stream()
                 .filter(f -> "mp4".equalsIgnoreCase(f.getContainer()))
-                .filter(f -> f.getResolution().contains("360") || f.getResolution().contains("240"))
+                .filter(f -> f.getResolution().contains("640") || f.getResolution().contains("360") || f.getResolution().contains("240"))
                 .min((f1, f2) -> f1.getFileSizeInMB().compareTo(f2.getFileSizeInMB()))
                 .orElse(null);
     }

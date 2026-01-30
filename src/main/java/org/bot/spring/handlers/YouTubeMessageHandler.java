@@ -13,6 +13,8 @@ import java.io.File;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static java.util.Objects.nonNull;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -41,8 +43,7 @@ public class YouTubeMessageHandler implements MessageHandler {
             if (videoUrl == null) {
                 videoUrl = text;
             }
-            String textWithoutUrl = text.replace(videoUrl, "");
-
+            String textWithOutUrl = text.replace(videoUrl, "");
             log.info("Обработка YouTube видео: {}", videoUrl);
 
             // Шаг 2: Получить список доступных форматов
@@ -105,29 +106,27 @@ public class YouTubeMessageHandler implements MessageHandler {
 
             // Шаг 5: Отправить результат
             File videoFile = new File(filePath);
-            String caption;
-            if (textWithoutUrl.isBlank()) {
-                caption = "Video from @" + context.getUsername();
+            String messageText = "@" + context.getUsername() + ": " + textWithOutUrl;
+            Object videoSendResult = telegramMessageService.sendVideo(context.getChatId(), videoFile, videoUrl);
+            if (nonNull(videoSendResult)) {
+                telegramMessageService.editTextMessage(context.getChatId(), message.getMessageId(), messageText);
+                telegramMessageService.deleteMessage(context.getChatId(), context.getMessageId());
             } else {
-                caption = "Video from @" + context.getUsername() + ": " + textWithoutUrl;
+                telegramMessageService.editTextMessage(context.getChatId(), context.getMessageId(), "Процесс загрузки был прерван.");
             }
-            telegramMessageService.sendVideo(context.getChatId(), videoFile, caption);
-            telegramMessageService.deleteMessage(context.getChatId(), message.getMessageId());
-            telegramMessageService.deleteMessage(context.getChatId(), context.getMessageId());
-
             // Удалить временный файл
             ytDlpService.deleteFile(filePath);
 
             log.info("Видео успешно отправлено и удалено: {}", filePath);
-
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Процесс был прерван", e);
-            telegramMessageService.sendTextMessage(context.getChatId(), "Процесс загрузки был прерван.");
+            telegramMessageService.editOrsendNewTextMessage(context.getChatId(), context.getMessageId(), "Процесс загрузки был прерван.");
         } catch (Exception e) {
             log.error("Ошибка при обработке YouTube видео", e);
-            telegramMessageService.sendTextMessage(
+            telegramMessageService.editOrsendNewTextMessage(
                     context.getChatId(),
+                    context.getMessageId(),
                     "Произошла ошибка при загрузке видео: " + e.getMessage()
             );
         }

@@ -7,10 +7,18 @@ plugins {
 }
 
 group = "org.bot"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.jar {
+    enabled = false
+}
+
+tasks.bootJar {
+    enabled = true
 }
 
 configurations {
@@ -42,6 +50,6 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.withType<Test> {
+tasks.test {
 	useJUnitPlatform()
 }

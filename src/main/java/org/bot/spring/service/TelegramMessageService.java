@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
+import java.math.BigDecimal;
 
 import static java.util.Objects.nonNull;
 
@@ -78,7 +79,7 @@ public class TelegramMessageService {
     /**
      * Редактирует ранее отправленное сообщение по его Id
      */
-    public void editTextMessage(long chatId, int messageId, String text) {
+    public Object editTextMessage(long chatId, int messageId, String text) {
         try {
             EditMessageText editMessageText = EditMessageText.builder()
                     .chatId(chatId)
@@ -86,20 +87,24 @@ public class TelegramMessageService {
                     .text(text)
                     .build();
             telegramClient.execute(editMessageText);
+            return BigDecimal.ONE;
         } catch (TelegramApiException e) {
             log.error("Ошибка при редактировании сообщения: {}", e.getMessage(), e);
+            return null;
         }
     }
 
     /**
      * Удаляет ранее отправленное сообщение по его Id - добавление видео
      */
-    public void deleteMessage(Long chatId, Integer messageId) {
+    public Object deleteMessage(Long chatId, Integer messageId) {
         try {
             DeleteMessage deleteMessage = new DeleteMessage(chatId.toString(), messageId);
             telegramClient.execute(deleteMessage);
+            return BigDecimal.ONE;
         } catch (TelegramApiException e) {
             log.error("Ошибка при удалении сообщения: {}", e.getMessage(), e);
+            return null;
         }
     }
 }
