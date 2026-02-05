@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bot.spring.configuration.properties.BotProperties;
 import org.bot.spring.dto.MessageContext;
 import org.bot.spring.handlers.MessageHandler;
+import org.bot.spring.service.TelegramMessageService;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
@@ -23,6 +24,7 @@ public class MessageProcessor implements LongPollingUpdateConsumer {
 
     private final BotProperties botProperties;
     private final List<MessageHandler> messageHandlers;
+    private final TelegramMessageService telegramMessageService;
 
     @Override
     public void consume(List<Update> updates) {
@@ -70,7 +72,13 @@ public class MessageProcessor implements LongPollingUpdateConsumer {
 
         String text = receivedMessage.getText();
         long chatId = receivedMessage.getChatId();
-        
+
+
+        if (text.length() > 400) {
+            log.info("Сообщение слишком длинное, игнорируем");
+            return;
+        }
+
         log.info("Получено сообщение от {}: {}", receivedMessage.getFrom().getUserName(), text);
 
         // Создаем контекст сообщения
@@ -83,9 +91,17 @@ public class MessageProcessor implements LongPollingUpdateConsumer {
         // Поиск подходящего обработчика
         boolean handled = false;
         for (MessageHandler handler : messageHandlers) {
+            //TODO: Переделать логику проверки текста - вначале искать ссылки, а потом делать регэксп, иначе на больишх файлах приходит пздц
             if (handler.canHandle(text)) {
                 log.info("Обработчик {} выбран для обработки сообщения", handler.getClass().getSimpleName());
-                handler.handle(text, context);
+                try {
+                    //TODO: добавить экзекутор (CompitableFurure -> runAsync(handler, EXECUTOR), на 5 кэшованных
+                    // потоков и выполнять обработку каждую в своём потоке
+                    handler.handle(text, context);
+                } catch (Exception e) {
+                    log.error("Ошибка при обработке сообщения хендлером {}", handler.getClass().getSimpleName(), e);
+                    telegramMessageService.sendTextMessage(chatId, "Произошла ошибка при обработке: " + e.getMessage());
+                }
                 handled = true;
                 break;
             }
@@ -120,7 +136,7 @@ public class MessageProcessor implements LongPollingUpdateConsumer {
         if (!isAuthorized) {
             log.warn("Пользователь {} не в списке разрешенных", username);
         }
-        
+
         return isAuthorized;
     }
 }

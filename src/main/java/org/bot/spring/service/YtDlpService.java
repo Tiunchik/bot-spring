@@ -3,6 +3,8 @@ package org.bot.spring.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot.spring.configuration.properties.DownloadProperties;
+import org.bot.spring.dto.MessageContext;
+import org.bot.spring.dto.ProcessCommand;
 import org.bot.spring.dto.VideoFormatDto;
 import org.springframework.stereotype.Service;
 
@@ -183,66 +185,22 @@ public class YtDlpService {
                 .orElse(null);
     }
 
-    /**
-     * Скачивает видео с указанием формата в указанном формате
-     *
-     * @param url       URL видео
-     * @param formatId  ID формата
-     * @param chatId    ID чата
-     * @param messageId ID сообщения
-     * @param username  Имя пользователя
-     * @return Путь к скачанному файлу
-     */
-    public String downloadYoutubeVideo(String url, String formatId, long chatId, int messageId, String username)
-            throws IOException, InterruptedException {
-
-        String fileName = String.format("%d-%d-%s.mp4", chatId, messageId, username != null ? username : "unknown");
-        String outputPath = downloadProperties.getDownloadPath() + fileName;
-
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                "yt-dlp",
-                "-f", formatId,
-                "-P", downloadProperties.getDownloadPath(),
-                "-o", fileName,
-                url
-        );
-        processBuilder.redirectErrorStream(true);
-        downloadVideo(processBuilder, outputPath);
-
-        return outputPath;
+    public String createFilename(MessageContext ctx) {
+        return String.format("%d-%d-%s.mp4", ctx.getChatId(), ctx.getMessageId(), ctx.getUsername() != null ? ctx.getUsername() : "unknown");
     }
 
-    /**
-     * Скачивает видео без указаний формата в указанном формате
-     *
-     * @param url       URL видео
-     * @param chatId    ID чата
-     * @param messageId ID сообщения
-     * @param username  Имя пользователя
-     * @return Путь к скачанному файлу
-     */
-    public String downloadInstagramVideo(String url, long chatId, int messageId, String username)
-            throws IOException, InterruptedException {
-
-        String fileName = String.format("%d-%d-%s.mp4", chatId, messageId, username != null ? username : "unknown");
-        String outputPath = downloadProperties.getDownloadPath() + fileName;
-
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                "yt-dlp",
-                "-P", downloadProperties.getDownloadPath(),
-                "-o", fileName,
-                url
-        );
-        processBuilder.redirectErrorStream(true);
-        downloadVideo(processBuilder, outputPath);
-
-        return outputPath;
+    public String pathToDownload() {
+        return downloadProperties.getDownloadPath();
     }
 
-    public void downloadVideo(ProcessBuilder processBuilder, String outputPath)
+    //TODO: Сделать один метод со спиком параметров через List<String>
+    /**
+     * Скачивает видео с помощью yt-dlp
+     */
+    public void downloadVideo(ProcessCommand command)
             throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder(command.getListCommands());
         processBuilder.redirectErrorStream(true);
-
         Process process = processBuilder.start();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -257,9 +215,9 @@ public class YtDlpService {
             throw new IOException("yt-dlp завершился с кодом " + exitCode);
         }
 
-        File file = new File(outputPath);
+        File file = new File(command.getOutputPath());
         if (!file.exists()) {
-            throw new IOException("Файл не был создан: " + outputPath);
+            throw new IOException("Файл не был создан: " + command.getOutputPath());
         }
     }
 

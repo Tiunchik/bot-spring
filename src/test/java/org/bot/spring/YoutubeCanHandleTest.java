@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class YoutubeCanHandleTest {
     
-    private final YouTubeMessageHandler youTubeMessageHandler = new YouTubeMessageHandler(null, null);
+    private final YouTubeMessageHandler youTubeMessageHandler = new YouTubeMessageHandler(null, null, null);
 
     @Test
     void extractUrl_shouldReturnNull_whenInputIsNull() {

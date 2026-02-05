@@ -14,11 +14,10 @@ server:
   http2:
     enabled: true
 
-bot:
-  name: '@tg_tiunchik_bot' #Not for code, just don't forget bot nickname
-  token: 'TEST'
-  allowed-users: tiunchik_maksim;Daniils_Loputevs
-
 download:
-  max-file-size-mb: 50
+  max-file-size-mb: 30
   download-path: /tmp/
+
+logging:
+  level:
+    root: INFO

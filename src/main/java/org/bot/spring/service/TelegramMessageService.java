@@ -45,7 +45,8 @@ public class TelegramMessageService {
      */
     public Message editOrsendNewTextMessage(long chatId, Integer messageId, String text) {
         if (nonNull(messageId) && messageId != 0) {
-            editTextMessage(chatId, messageId, text);
+            Object flag = editTextMessage(chatId, messageId, text);
+            if (flag == null) return sendTextMessage(chatId, text);
             return null;
         } else {
             return sendTextMessage(chatId, text);
