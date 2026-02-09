@@ -6,7 +6,7 @@ https://free-proxy-list.net/ru/socks-proxy.html
 ### Ещё штука, что отрыл Claude
 https://proxyscrape.com/ - сайт, а ИИ отрыл API
 https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=json
-- есть парсер + шедулер [ProxyScrapeClient.java](../../java/org/bot/spring/service/proxy/ProxyScrapeClient.java)
+- есть парсер + шедулер [ProxyScrapeClient.java](../../java/org/bot/spring/service/proxy/client/ProxyScrapeClient.java)) (ctrl + click to open)
 
 
 ### Ещё штука, что отрыл Claude

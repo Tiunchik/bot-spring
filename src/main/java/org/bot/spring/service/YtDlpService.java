@@ -6,10 +6,9 @@ import lombok.val;
 import org.bot.spring.configuration.properties.DownloadProperties;
 import org.bot.spring.dto.MessageContext;
 import org.bot.spring.dto.DownloadVideoCommand;
-import org.bot.spring.dto.ProxyDto;
 import org.bot.spring.dto.VideoFormatDto;
 import org.bot.spring.exceptions.YtDlpExitException;
-import org.bot.spring.service.proxy.ProxyProviderService;
+import org.bot.spring.service.proxy.ProxyProvider;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -32,17 +31,10 @@ import static java.util.Objects.nonNull;
 public class YtDlpService {
 
     private final DownloadProperties downloadProperties;
-    private final ProxyProviderService proxyProviderService;
-
+    private final ProxyProvider proxyProvider;
 
     public String getCurrentProxy() {
-        ProxyDto proxy = proxyProviderService.getNextSocks5Proxy();
-        if (proxy != null) {
-            String proxyStr = proxy.toYtDlpFormat();
-            log.debug("Используется прокси: {}", proxyStr);
-            return proxyStr;
-        }
-        return null;
+        return proxyProvider.getCurrentProxy();
     }
 
     /**

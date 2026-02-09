@@ -1,4 +1,4 @@
-package org.bot.spring.service.proxy;
+package org.bot.spring.service.proxy.client;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
@@ -16,6 +16,15 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * HTTP клиент для API proxyscrape.com.
+ * <p>
+ * Выполняет GET запрос к публичному API и парсит JSON ответ.
+ * Возвращает только socks4/socks5 прокси с флагом {@code alive: true}.
+ * <p>
+ * API endpoint: {@code https://api.proxyscrape.com/v4/free-proxy-list/get?...}
+ *
+ */
 @Slf4j
 @Component
 public class ProxyScrapeClient {
@@ -26,6 +35,11 @@ public class ProxyScrapeClient {
             .connectTimeout(Duration.ofSeconds(15))
             .build();
 
+    /**
+     * Загружает список прокси из API.
+     *
+     * @return список прокси (пустой список при ошибке, никогда не null)
+     */
     public List<ProxyDto> fetchProxies() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -89,7 +103,7 @@ public class ProxyScrapeClient {
                 }
             }
 
-            log.info("Распарсено {} socks прокси из ProxyScrape API", proxies.size());
+            log.debug("Распарсено {} socks прокси из ProxyScrape API", proxies.size());
 
         } catch (Exception e) {
             log.error("Ошибка парсинга JSON от ProxyScrape", e);

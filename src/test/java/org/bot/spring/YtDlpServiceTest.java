@@ -1,13 +1,13 @@
 package org.bot.spring;
 
 import org.bot.spring.configuration.properties.DownloadProperties;
-import org.bot.spring.service.proxy.ProxyProviderService;
-import org.bot.spring.service.proxy.ProxyScrapeClient;
+import org.bot.spring.service.proxy.ProxyProvider;
 import org.bot.spring.service.YtDlpService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -22,7 +22,7 @@ class YtDlpServiceTest {
         downloadProperties = new DownloadProperties();
         downloadProperties.setDownloadPath("/tmp/");
         downloadProperties.setMaxFileSizeMB(new BigDecimal("50"));
-        ytDlpService = new YtDlpService(downloadProperties, new ProxyProviderService(new ProxyScrapeClient()));
+        ytDlpService = new YtDlpService(downloadProperties, new ProxyProvider(List.of()));
     }
 
     @Test
