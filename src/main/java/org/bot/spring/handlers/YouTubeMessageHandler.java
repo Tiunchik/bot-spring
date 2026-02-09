@@ -1,9 +1,8 @@
 package org.bot.spring.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bot.spring.configuration.properties.DownloadProperties;
 import org.bot.spring.dto.MessageContext;
-import org.bot.spring.dto.ProcessCommand;
+import org.bot.spring.dto.DownloadVideoCommand;
 import org.bot.spring.dto.VideoFormatDto;
 import org.bot.spring.service.TelegramMessageService;
 import org.bot.spring.service.YtDlpService;
@@ -11,17 +10,20 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 import java.io.IOException;
-import java.nio.file.FileSystemException;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Component
 public class YouTubeMessageHandler extends AbstractMessageHandler {
 
-    private static final Pattern YOUTUBE_PATTERN = Pattern.compile(
-            "(?:.|\\n|\\r)*(youtube\\.com|youtu\\.be)(?:.|\\n|\\r)*"
-    );
+    private static final String[] YOUTUBE_PREFIXES = {
+            "https://youtube.com",
+            "https://www.youtube.com",
+            "https://youtu.be",
+            "http://youtube.com",
+            "http://www.youtube.com",
+            "http://youtu.be"
+    };
 
     public YouTubeMessageHandler(YtDlpService ytDlpService,
                                  TelegramMessageService telegramMessageService) {
@@ -30,10 +32,17 @@ public class YouTubeMessageHandler extends AbstractMessageHandler {
 
     @Override
     public boolean canHandle(String text) {
-        if (text == null) {
+        if (text == null || text.isEmpty()) {
             return false;
         }
-        return YOUTUBE_PATTERN.matcher(text).matches();
+        // Happy path: сообщение начинается со ссылки
+        for (String prefix : YOUTUBE_PREFIXES) {
+            if (text.startsWith(prefix)) {
+                return true;
+            }
+        }
+        // Fallback: ссылка где-то внутри текста
+        return text.contains("youtube.com") || text.contains("youtu.be");
     }
 
     @Override
@@ -73,11 +82,7 @@ public class YouTubeMessageHandler extends AbstractMessageHandler {
                         selected.getResolution())
         );
 
-        //TODO: добавить команду --proxy для yt-dlp - google how - для наполнения команды нужен парсер на сайт
-        //напиши парсер на java для сайта https://free-proxy-list.net/ru/socks-proxy.html
-        //нужно в итоге получать json содержащий объекты с полями: code ip port version
-        // у меня прокси работало только с socks5, проверить работу с socks4, мб тоже покатит
-        var command = ProcessCommand.builder()
+        var command = DownloadVideoCommand.builder()
                 .videoId(selected.getId())
                 .fileName(ytDlpService.createFilename(context))
                 .videoUrl(videoUrl)

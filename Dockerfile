@@ -19,5 +19,4 @@ ARG JAR_FILE=build/libs/$SERVICE_NAME*.jar
 
 COPY ${JAR_FILE} ${SERVICE_NAME}.jar
 
-ENV JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
 ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /$SERVICE_NAME.jar"]

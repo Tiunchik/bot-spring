@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:free-proxy-list.net)",
+      "WebFetch(domain:www.socks-proxy.net)"
+    ]
+  }
+}

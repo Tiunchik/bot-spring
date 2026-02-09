@@ -8,15 +8,20 @@ import java.util.List;
 
 @Data
 @Builder
-public class ProcessCommand {
+public class DownloadVideoCommand {
     String videoUrl;
     String videoId;
     String folderPath;
     String fileName;
+    String proxy;
 
     public List<String> getListCommands() {
         List<String> list = new ArrayList<>();
         list.add("yt-dlp");
+        if (proxy != null && !proxy.isEmpty()) {
+            list.add("--proxy");
+            list.add(proxy);
+        }
         if (videoId != null) {
             list.add("-f");
             list.add(videoId);

@@ -2,10 +2,13 @@ package org.bot.spring.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.bot.spring.configuration.properties.DownloadProperties;
 import org.bot.spring.dto.MessageContext;
-import org.bot.spring.dto.ProcessCommand;
+import org.bot.spring.dto.DownloadVideoCommand;
 import org.bot.spring.dto.VideoFormatDto;
+import org.bot.spring.exceptions.YtDlpExitException;
+import org.bot.spring.service.proxy.ProxyProvider;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -29,11 +32,10 @@ public class YtDlpService {
 
     private final DownloadProperties downloadProperties;
 
-
     /**
      * Пытается найти самое большое видео в списке
      */
-    public VideoFormatDto getMaxVideoSize(String url) throws IOException, InterruptedException {
+    public VideoFormatDto getMaxVideoSizeForInstagram(String url) throws IOException, InterruptedException {
         List<VideoFormatDto> formats = new ArrayList<>();
 
         ProcessBuilder processBuilder = new ProcessBuilder("yt-dlp", "-F", url);
@@ -45,7 +47,7 @@ public class YtDlpService {
             String line;
             while ((line = reader.readLine()) != null) {
                 // Пропускаем заголовок и разделитель
-                foundMaxVideoSize(line, formats);
+                getMaxVideoSize(line, formats);
             }
         }
 
@@ -60,7 +62,7 @@ public class YtDlpService {
                 .get();
     }
 
-    public void foundMaxVideoSize(String line, List<VideoFormatDto> formats) {
+    public void getMaxVideoSize(String line, List<VideoFormatDto> formats) {
         Pattern sizePattern = Pattern.compile("([\\d.]+(KiB|MiB|GiB))");
 
         if (line.contains("ID") || line.contains("[youtube]") || line.contains("[line]") || line.contains("----------") ||
@@ -103,18 +105,20 @@ public class YtDlpService {
         processBuilder.redirectErrorStream(true);
 
         Process process = processBuilder.start();
-
+        
+        var ytDlpLog = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 // Пропускаем заголовок и разделитель
                 extracted(line, formats);
+                ytDlpLog.append(line);
             }
         }
-
+        
         int exitCode = process.waitFor();
         if (exitCode != 0) {
-            throw new IOException("yt-dlp завершился с кодом " + exitCode);
+            throw new YtDlpExitException(exitCode, ytDlpLog.toString());
         }
 
         return formats;
@@ -192,18 +196,16 @@ public class YtDlpService {
     public String pathToDownload() {
         return downloadProperties.getDownloadPath();
     }
-
-    //TODO: Сделать один метод со спиком параметров через List<String>
+    
     /**
      * Скачивает видео с помощью yt-dlp
      */
-    public void downloadVideo(ProcessCommand command)
-            throws IOException, InterruptedException {
-        ProcessBuilder processBuilder = new ProcessBuilder(command.getListCommands());
-        processBuilder.redirectErrorStream(true);
-        Process process = processBuilder.start();
+    public void downloadVideo(DownloadVideoCommand command) throws IOException, InterruptedException {
+        val process = new ProcessBuilder(command.getListCommands())
+                .redirectErrorStream(true)
+                .start();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        try (val reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 log.info("yt-dlp: {}", line);
