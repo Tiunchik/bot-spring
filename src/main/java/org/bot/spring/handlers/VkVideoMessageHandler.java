@@ -1,5 +1,6 @@
 package org.bot.spring.handlers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot.spring.dto.MessageContext;
 import org.bot.spring.dto.DownloadVideoCommand;
@@ -14,19 +15,20 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class VkVideoMessageHandler extends YouTubeMessageHandler {
+@RequiredArgsConstructor
+public class VkVideoMessageHandler implements MessageHandler {
 
     private static final String[] VK_VIDEO_PREFIXES = {
             "https://vk.com",
             "https://www.vk.com",
             "http://vk.com",
             "http://www.vk.com",
+            "https://vk.ru",
+            "https://www.vk.ru",
+            "http://vk.ru",
+            "http://www.vk.ru",
     };
-
-    public VkVideoMessageHandler(YtDlpService ytDlpService,
-                                 TelegramMessageService telegramMessageService) {
-        super(ytDlpService, telegramMessageService);
-    }
+    private final YouTubeMessageHandler youTubeMessageHandler;
 
     @Override
     public boolean canHandle(String text) {
@@ -40,6 +42,11 @@ public class VkVideoMessageHandler extends YouTubeMessageHandler {
             }
         }
         // Fallback: ссылка где-то внутри текста
-        return text.contains("vk.com");
+        return text.contains("vk.com") || text.contains("vk.ru");
+    }
+
+    @Override
+    public void handle(String text, MessageContext context) {
+        youTubeMessageHandler.handle(text, context);
     }
 }
