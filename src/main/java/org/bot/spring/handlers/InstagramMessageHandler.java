@@ -11,16 +11,17 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Component
 public class InstagramMessageHandler extends AbstractMessageHandler {
 
-    private static final Pattern INSTAGRAM_PATTERN = Pattern.compile(
-            "(?:.|\\n|\\r)*(instagram\\.com)(?:.|\\n|\\r)*",
-            Pattern.CASE_INSENSITIVE
-    );
+    private static final String[] INSTAGRAM_PREFIXES = {
+            "https://instagram.com",
+            "https://www.instagram.com",
+            "http://instagram.com",
+            "http://www.instagram.com"
+    };
 
     public InstagramMessageHandler(YtDlpService ytDlpService, org.bot.spring.service.TelegramMessageService telegramMessageService) {
         super(ytDlpService, telegramMessageService);
@@ -28,10 +29,17 @@ public class InstagramMessageHandler extends AbstractMessageHandler {
 
     @Override
     public boolean canHandle(String text) {
-        if (text == null) {
+        if (text == null || text.isEmpty()) {
             return false;
         }
-        return INSTAGRAM_PATTERN.matcher(text).matches();
+        // Happy path: сообщение начинается со ссылки
+        for (String prefix : INSTAGRAM_PREFIXES) {
+            if (text.startsWith(prefix)) {
+                return true;
+            }
+        }
+        // Fallback: ссылка где-то внутри текста
+        return text.toLowerCase().contains("instagram.com");
     }
 
     @Override

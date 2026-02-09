@@ -107,7 +107,6 @@ public class MessageProcessor implements LongPollingUpdateConsumer {
         // Поиск подходящего обработчика
         boolean handled = false;
         for (MessageHandler handler : messageHandlers) {
-            //TODO: Переделать логику проверки текста - вначале искать ссылки, а потом делать регэксп, иначе на больишх файлах приходит пздц
             if (handler.canHandle(text)) {
                 log.info("Обработчик {} выбран для обработки сообщения", handler.getClass().getSimpleName());
                 try {

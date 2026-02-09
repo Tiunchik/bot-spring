@@ -11,15 +11,19 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Component
 public class YouTubeMessageHandler extends AbstractMessageHandler {
 
-    private static final Pattern YOUTUBE_PATTERN = Pattern.compile(
-            "(?:.|\\n|\\r)*(youtube\\.com|youtu\\.be)(?:.|\\n|\\r)*"
-    );
+    private static final String[] YOUTUBE_PREFIXES = {
+            "https://youtube.com",
+            "https://www.youtube.com",
+            "https://youtu.be",
+            "http://youtube.com",
+            "http://www.youtube.com",
+            "http://youtu.be"
+    };
 
     public YouTubeMessageHandler(YtDlpService ytDlpService,
                                  TelegramMessageService telegramMessageService) {
@@ -28,10 +32,17 @@ public class YouTubeMessageHandler extends AbstractMessageHandler {
 
     @Override
     public boolean canHandle(String text) {
-        if (text == null) {
+        if (text == null || text.isEmpty()) {
             return false;
         }
-        return YOUTUBE_PATTERN.matcher(text).matches();
+        // Happy path: сообщение начинается со ссылки
+        for (String prefix : YOUTUBE_PREFIXES) {
+            if (text.startsWith(prefix)) {
+                return true;
+            }
+        }
+        // Fallback: ссылка где-то внутри текста
+        return text.contains("youtube.com") || text.contains("youtu.be");
     }
 
     @Override
