@@ -34,13 +34,4 @@ public interface ProxySource {
      * @return человекочитаемое имя (например, "ProxyScrape", "LocalFile[xxx.txt]")
      */
     String getName();
-
-    /**
-     * Проверяет, есть ли доступные прокси в этом источнике.
-     *
-     * @return true если список прокси не пуст
-     */
-    default boolean isAvailable() {
-        return !getProxies().isEmpty();
-    }
 }

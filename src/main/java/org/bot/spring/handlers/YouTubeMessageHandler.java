@@ -82,28 +82,13 @@ public class YouTubeMessageHandler extends AbstractMessageHandler {
                         selected.getResolution())
         );
 
-        var commandTemplate = DownloadVideoCommand.builder()
+        var command = DownloadVideoCommand.builder()
                 .videoId(selected.getId())
                 .fileName(ytDlpService.createFilename(context))
                 .videoUrl(videoUrl)
-                .folderPath(ytDlpService.pathToDownload());
-        
-        // Если прокси наебал, то пробуем качать напрямую
-        try {
-            ytDlpService.downloadVideo(
-                    commandTemplate
-                            .proxy(ytDlpService.getCurrentProxy())
-                            .build()
-            );
-        } catch (Exception e) {
-            log.info("Прокси наебал! Пробуем качать напрямую!");
-            ytDlpService.downloadVideo(
-                    commandTemplate
-                            .proxy(null) // да, тут нужно сетать null явно =)
-                            .build()
-            );
-        }
-       
-        return commandTemplate.build().getOutputPath();
+                .folderPath(ytDlpService.pathToDownload())
+                .build();
+        ytDlpService.downloadVideo(command);
+        return command.getOutputPath();
     }
 }

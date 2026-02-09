@@ -31,29 +31,14 @@ import static java.util.Objects.nonNull;
 public class YtDlpService {
 
     private final DownloadProperties downloadProperties;
-    private final ProxyProvider proxyProvider;
-
-    public String getCurrentProxy() {
-        return proxyProvider.getCurrentProxy();
-    }
 
     /**
      * Пытается найти самое большое видео в списке
      */
-    public VideoFormatDto getMaxVideoSize(String url) throws IOException, InterruptedException {
+    public VideoFormatDto getMaxVideoSizeForInstagram(String url) throws IOException, InterruptedException {
         List<VideoFormatDto> formats = new ArrayList<>();
 
-        List<String> commands = new ArrayList<>();
-        commands.add("yt-dlp");
-        String proxy = getCurrentProxy();
-        if (proxy != null) {
-            commands.add("--proxy");
-            commands.add(proxy);
-        }
-        commands.add("-F");
-        commands.add(url);
-
-        ProcessBuilder processBuilder = new ProcessBuilder(commands);
+        ProcessBuilder processBuilder = new ProcessBuilder("yt-dlp", "-F", url);
         processBuilder.redirectErrorStream(true);
 
         Process process = processBuilder.start();
@@ -62,7 +47,7 @@ public class YtDlpService {
             String line;
             while ((line = reader.readLine()) != null) {
                 // Пропускаем заголовок и разделитель
-                foundMaxVideoSize(line, formats);
+                getMaxVideoSize(line, formats);
             }
         }
 
@@ -77,7 +62,7 @@ public class YtDlpService {
                 .get();
     }
 
-    public void foundMaxVideoSize(String line, List<VideoFormatDto> formats) {
+    public void getMaxVideoSize(String line, List<VideoFormatDto> formats) {
         Pattern sizePattern = Pattern.compile("([\\d.]+(KiB|MiB|GiB))");
 
         if (line.contains("ID") || line.contains("[youtube]") || line.contains("[line]") || line.contains("----------") ||
