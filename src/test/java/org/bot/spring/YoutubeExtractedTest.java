@@ -2,6 +2,8 @@ package org.bot.spring;
 
 import org.bot.spring.configuration.properties.DownloadProperties;
 import org.bot.spring.dto.VideoFormatDto;
+import org.bot.spring.service.proxy.ProxyProviderService;
+import org.bot.spring.service.proxy.ProxyScrapeClient;
 import org.bot.spring.service.YtDlpService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -58,7 +60,7 @@ class YoutubeExtractedTest {
         DownloadProperties properties = new DownloadProperties();
         properties.setDownloadPath("/");
         properties.setMaxFileSizeMB(BigDecimal.TWO);
-        YtDlpService service = new YtDlpService(properties);
+        YtDlpService service = new YtDlpService(properties, new ProxyProviderService(new ProxyScrapeClient()));
         var result = new ArrayList<VideoFormatDto>();
         lines.forEach(it -> service.extracted(it, result));
         Assertions.assertTrue(result.size() > 0);

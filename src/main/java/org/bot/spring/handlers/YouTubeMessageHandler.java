@@ -1,9 +1,8 @@
 package org.bot.spring.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bot.spring.configuration.properties.DownloadProperties;
 import org.bot.spring.dto.MessageContext;
-import org.bot.spring.dto.ProcessCommand;
+import org.bot.spring.dto.DownloadVideoCommand;
 import org.bot.spring.dto.VideoFormatDto;
 import org.bot.spring.service.TelegramMessageService;
 import org.bot.spring.service.YtDlpService;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 import java.io.IOException;
-import java.nio.file.FileSystemException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -73,17 +71,28 @@ public class YouTubeMessageHandler extends AbstractMessageHandler {
                         selected.getResolution())
         );
 
-        //TODO: добавить команду --proxy для yt-dlp - google how - для наполнения команды нужен парсер на сайт
-        //напиши парсер на java для сайта https://free-proxy-list.net/ru/socks-proxy.html
-        //нужно в итоге получать json содержащий объекты с полями: code ip port version
-        // у меня прокси работало только с socks5, проверить работу с socks4, мб тоже покатит
-        var command = ProcessCommand.builder()
+        var commandTemplate = DownloadVideoCommand.builder()
                 .videoId(selected.getId())
                 .fileName(ytDlpService.createFilename(context))
                 .videoUrl(videoUrl)
-                .folderPath(ytDlpService.pathToDownload())
-                .build();
-        ytDlpService.downloadVideo(command);
-        return command.getOutputPath();
+                .folderPath(ytDlpService.pathToDownload());
+        
+        // Если прокси наебал, то пробуем качать напрямую
+        try {
+            ytDlpService.downloadVideo(
+                    commandTemplate
+                            .proxy(ytDlpService.getCurrentProxy())
+                            .build()
+            );
+        } catch (Exception e) {
+            log.info("Прокси наебал! Пробуем качать напрямую!");
+            ytDlpService.downloadVideo(
+                    commandTemplate
+                            .proxy(null) // да, тут нужно сетать null явно =)
+                            .build()
+            );
+        }
+       
+        return commandTemplate.build().getOutputPath();
     }
 }

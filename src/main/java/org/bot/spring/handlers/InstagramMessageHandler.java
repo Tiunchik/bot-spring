@@ -2,9 +2,8 @@ package org.bot.spring.handlers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bot.spring.dto.MessageContext;
-import org.bot.spring.dto.ProcessCommand;
+import org.bot.spring.dto.DownloadVideoCommand;
 import org.bot.spring.dto.VideoFormatDto;
-import org.bot.spring.exceptions.FileSizeExceededException;
 import org.bot.spring.service.YtDlpService;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
@@ -12,8 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.file.FileSystemException;
-import java.util.List;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -43,10 +40,11 @@ public class InstagramMessageHandler extends AbstractMessageHandler {
         // Проверить размер файла
         checkFileSizeAndNotify(maxSize.getFileSizeInMB().divide(BigDecimal.TWO, RoundingMode.DOWN));
 
-        var command = ProcessCommand.builder()
+        var command = DownloadVideoCommand.builder()
                 .fileName(ytDlpService.createFilename(context))
                 .videoUrl(videoUrl)
                 .folderPath(ytDlpService.pathToDownload())
+                .proxy(ytDlpService.getCurrentProxy())
                 .build();
         ytDlpService.downloadVideo(command);
         return command.getOutputPath();

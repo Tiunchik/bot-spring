@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bot.spring.dto.MessageContext;
 import org.bot.spring.exceptions.FileSizeExceededException;
+import org.bot.spring.exceptions.YtDlpExitException;
 import org.bot.spring.service.TelegramMessageService;
 import org.bot.spring.service.YtDlpService;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
@@ -59,6 +60,11 @@ public abstract class AbstractMessageHandler implements MessageHandler {
             ytDlpService.deleteFile(filePath);
             log.info("Видео успешно отправлено и удалено: {}", filePath);
 
+        } catch (YtDlpExitException fse) {
+            log.error("Ошибка загрузки видео: \n{}", fse.getMessage());
+            telegramMessageService.editOrsendNewTextMessage(context.getChatId(), message.getMessageId(),
+                    "Не удалось скачать файл по техническим причинам =(\n" +
+                            "Пишите админу");
         } catch (FileSizeExceededException fse) {
             log.error("Ошибка загрузки видео: {}", fse.getMessage());
             telegramMessageService.editOrsendNewTextMessage(context.getChatId(), message.getMessageId(), fse.getMessage());
