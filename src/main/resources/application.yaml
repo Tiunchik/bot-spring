@@ -18,6 +18,11 @@ download:
   max-file-size-mb: 30
   download-path: /tmp/
 
+bot:
+  name: '@tg_tiunchik_bot' #Not for code, just don't forget bot nickname
+  token: ${BOT_TOKEN}
+  allowed-users: tiunchik_maksim;Daniils_Loputevs;olose_tiunya;Free_Dog_Night
+
 logging:
   level:
     root: INFO
