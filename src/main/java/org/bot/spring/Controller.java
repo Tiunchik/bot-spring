@@ -12,7 +12,7 @@ public class Controller {
 
     @GetMapping
     public String handleApplicationReadyEvent(ApplicationReadyEvent event) {
-        return "test";
+        return "{\"message\": \"Application ready\"}";
     }
 }
 
