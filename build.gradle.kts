@@ -36,6 +36,7 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
 	implementation("org.telegram:telegrambots-meta:$telegramVersion")
 	implementation("org.telegram:telegrambots-longpolling:$telegramVersion")

@@ -14,9 +14,13 @@ RUN pip install ffmpeg
 RUN apk update && apk upgrade
 RUN apk add --no-cache openjdk25-jdk
 
-ENV SERVICE_NAME=bot-spring
+RUN mkdir -p /var/log/spring-bot
+
+ENV SERVICE_NAME=spring-bot
 ARG JAR_FILE=build/libs/$SERVICE_NAME*.jar
 
 COPY ${JAR_FILE} ${SERVICE_NAME}.jar
+
+VOLUME /var/log/spring-bot
 
 ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /$SERVICE_NAME.jar"]
