@@ -44,6 +44,14 @@ pipeline {
                         mkdir -p /root/docker/monitoring/loki
                         mkdir -p /root/docker/monitoring/prometheus
                         mkdir -p /root/docker/monitoring/promtail
+                        mkdir -p /root/docker/data/loki
+                        chmod 777 /root/docker/data/loki
+                        mkdir -p /root/docker/data/prometheus
+                        chmod 777 /root/docker/data/prometheus
+                        mkdir -p /root/docker/data/grafana
+                        chmod 777 /root/docker/data/grafana
+                        mkdir -p /root/docker/logs
+                        chmod 777 /root/docker/logs
                     '''
                     // Копируем докерфайлы
                     sshPut remote: remote, from: 'Dockerfile', into: '/root'
