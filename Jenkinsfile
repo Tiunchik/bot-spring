@@ -6,8 +6,8 @@ pipeline {
         DEPLOY_HOST = 'BOT_SERVER'
         CREDENTIALS_ID = 'BOT_SERVER_CREDS'
         PROD_TOKEN = 'BOT_TOKEN'
-        GRAFANA_USER = 'GRAFANA_USER'
-        GRAFANA_PASSWORD = 'GRAFANA_PSSWORD'
+//         GRAFANA_USER = 'GRAFANA_USER'
+//         GRAFANA_PASSWORD = 'GRAFANA_PSWWORD'
     }
 
     stages {
@@ -40,12 +40,20 @@ pipeline {
                     sshCommand remote: remote, command: '''
                         mkdir -p /root/build/libs
                         mkdir -p /root/docker
+                        mkdir -p /root/docker/monitoring/grafana/provisioning/datasources
+                        mkdir -p /root/docker/monitoring/loki
+                        mkdir -p /root/docker/monitoring/prometheus
+                        mkdir -p /root/docker/monitoring/promtail
                     '''
-                    // Копируем Dockerfile и docker-compose.yml
+                    // Копируем докерфайлы
                     sshPut remote: remote, from: 'Dockerfile', into: '/root'
-                    sshPut remote: remote, from: 'docker/**/*', into: '/root/docker'
+                    sshPut remote: remote, from: 'docker/docker-compose.yml', into: '/root/docker'
+                    sshPut remote: remote, from: 'docker/monitoring/grafana/provisioning/datasources/datasources.yml' , into: '/root/docker/monitoring/grafana/provisioning/datasources'
+                    sshPut remote: remote, from: 'docker/monitoring/loki/loki-config.yml' , into: '/root/docker/monitoring/loki'
+                    sshPut remote: remote, from: 'docker/monitoring/prometheus/prometheus.yml' , into: '/root/docker/monitoring/prometheus'
+                    sshPut remote: remote, from: 'docker/monitoring/promtail/promtail-config.yml' , into: '/root/docker/monitoring/promtail'
 
-                    // Копируем jar
+                    // Копируем jar , into:
                     def jarFile = sh(
                         script: 'find build/libs -name "*.jar" -type f | head -n 1',
                         returnStdout: true
@@ -75,10 +83,9 @@ rm -f /root/docker/.env
 cat > /root/docker/.env <<EOF
 SPRING_APPLICATION_PROFILE=prod
 BOT_TOKEN=${getSecretText(env.PROD_TOKEN)}
-GF_SECURITY_ADMIN_USER=${getSecretText(env.GRAFANA_USER)}
-GF_SECURITY_ADMIN_PASSWORD=${getSecretText(env.GRAFANA_PASSWORD)}
 EOF
-                    """
+"""
+                    sshCommand remote: remote, command: '''echo /root/docker/.env'''
                 }
             }
         }
