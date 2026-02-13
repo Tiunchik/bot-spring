@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import java.io.IOException;
 import java.util.List;
 
+//TODO: Починить видео в VK, стоит посмотреть на ffmpeg, последним, Макс завтра мб посмотрит
 @Slf4j
 @Component
 @RequiredArgsConstructor

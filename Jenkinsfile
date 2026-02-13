@@ -6,6 +6,8 @@ pipeline {
         DEPLOY_HOST = 'BOT_SERVER'
         CREDENTIALS_ID = 'BOT_SERVER_CREDS'
         PROD_TOKEN = 'BOT_TOKEN'
+        GRAFANA_USER = 'GRAFANA_USER'
+        GRAFANA_PASSWORD = 'GRAFANA_PSSWORD'
     }
 
     stages {
@@ -41,7 +43,7 @@ pipeline {
                     '''
                     // Копируем Dockerfile и docker-compose.yml
                     sshPut remote: remote, from: 'Dockerfile', into: '/root'
-                    sshPut remote: remote, from: 'docker/docker-compose.yml', into: '/root/docker'
+                    sshPut remote: remote, from: 'docker/**/*', into: '/root/docker'
 
                     // Копируем jar
                     def jarFile = sh(
@@ -73,6 +75,8 @@ rm -f /root/docker/.env
 cat > /root/docker/.env <<EOF
 SPRING_APPLICATION_PROFILE=prod
 BOT_TOKEN=${getSecretText(env.PROD_TOKEN)}
+GF_SECURITY_ADMIN_USER=${getSecretText(env.GRAFANA_USER)}
+GF_SECURITY_ADMIN_PASSWORD=${getSecretText(env.GRAFANA_PASSWORD)}
 EOF
                     """
                 }

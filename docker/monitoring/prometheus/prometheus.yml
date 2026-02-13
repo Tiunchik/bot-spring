@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Retention настраивается через CLI-флаг --storage.tsdb.retention.time=7d в docker-compose.yml
+
+scrape_configs:
+  - job_name: 'spring-bot'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['spring-bot:8080']
+        labels:
+          application: 'spring-bot'

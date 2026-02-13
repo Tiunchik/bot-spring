@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+//TODO: доделать логику по прокси, пока нас спасёт только сингапур :)
+// + логика чеканья списка прокси через yt-dlp -F запросы к метаданным
 @Slf4j
 @Component
 public class InstagramMessageHandler extends AbstractMessageHandler {
