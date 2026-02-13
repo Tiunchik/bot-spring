@@ -40,3 +40,5 @@ out/
 
 ### Docker secrets ###
 docker/.env
+/docker/data/
+/docker/logs/

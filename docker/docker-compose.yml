@@ -5,7 +5,7 @@ services:
     env_file:
       - .env
     volumes:
-      - spring-bot-logs:/var/log/spring-bot
+      - ./logs:/var/log/spring-bot
     restart: unless-stopped
 
   prometheus:
@@ -13,7 +13,7 @@ services:
     container_name: prometheus
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus-data:/prometheus
+      - ./data/prometheus:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -32,7 +32,7 @@ services:
       - .env
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - grafana-data:/var/lib/grafana
+      - ./data/grafana:/var/lib/grafana
     depends_on:
       - prometheus
       - loki
@@ -43,7 +43,7 @@ services:
     container_name: loki
     volumes:
       - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
-      - loki-data:/loki
+      - ./data/loki:/loki
     command: -config.file=/etc/loki/local-config.yaml
     restart: unless-stopped
 
@@ -52,16 +52,9 @@ services:
     container_name: promtail
     volumes:
       - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
-      - spring-bot-logs:/var/log/spring-bot:ro
+      - ./logs:/var/log/spring-bot:ro
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
       - spring-bot
     restart: unless-stopped
-
-volumes:
-  spring-bot-logs:
-    driver: local
-  prometheus-data:
-  grafana-data:
-  loki-data:

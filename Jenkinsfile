@@ -6,8 +6,8 @@ pipeline {
         DEPLOY_HOST = 'BOT_SERVER'
         CREDENTIALS_ID = 'BOT_SERVER_CREDS'
         PROD_TOKEN = 'BOT_TOKEN'
-//         GRAFANA_USER = 'GRAFANA_USER'
-//         GRAFANA_PASSWORD = 'GRAFANA_PSWWORD'
+        GRAFANA_USER = 'GRAFANA_USER'
+        GRAFANA_PASSWORD = 'GRAFANA_PASSWORD'
     }
 
     stages {
@@ -83,6 +83,8 @@ rm -f /root/docker/.env
 cat > /root/docker/.env <<EOF
 SPRING_APPLICATION_PROFILE=prod
 BOT_TOKEN=${getSecretText(env.PROD_TOKEN)}
+GF_SECURITY_ADMIN_USER=${getSecretText(env.GRAFANA_USER)}
+GF_SECURITY_ADMIN_PASSWORD=${getSecretText(env.GRAFANA_PASSWORD)}
 EOF
 """
                     sshCommand remote: remote, command: '''echo /root/docker/.env'''
