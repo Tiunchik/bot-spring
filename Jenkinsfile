@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_HOST = 'SSH_SERVER'
+        DEPLOY_USER = 'BOT_USER'
+        DEPLOY_HOST = 'BOT_SERVER'
+        CREDENTIALS_ID = 'BOT_SERVER_CREDS'
         PROD_TOKEN = 'BOT_TOKEN'
-        SSH_KEY_ID = 'SSH_KEY'
         GRAFANA_USER = 'GRAFANA_USER'
         GRAFANA_PASSWORD = 'GRAFANA_PASSWORD'
     }
@@ -31,8 +32,8 @@ pipeline {
                     def remote = [
                         name       : 'target-server',
                         host       : getSecretText(env.DEPLOY_HOST),
-                        user       : getSshUser(env.SSH_KEY_ID),
-                        identity   : getSshKey(env.SSH_KEY_ID),
+                        user       : getSecretText(env.DEPLOY_USER),
+                        password   : getPassword(env.CREDENTIALS_ID),
                         allowAnyHosts: true
                     ]
 
@@ -80,8 +81,8 @@ pipeline {
                     def remote = [
                         name       : 'target-server',
                         host       : getSecretText(env.DEPLOY_HOST),
-                        user       : getSshUser(env.SSH_KEY_ID),
-                        identity   : getSshKey(env.SSH_KEY_ID),
+                        user       : getSecretText(env.DEPLOY_USER),
+                        password   : getPassword(env.CREDENTIALS_ID),
                         allowAnyHosts: true
                     ]
 
@@ -104,8 +105,8 @@ EOF
                     def remote = [
                         name       : 'target-server',
                         host       : getSecretText(env.DEPLOY_HOST),
-                        user       : getSshUser(env.SSH_KEY_ID),
-                        identity   : getSshKey(env.SSH_KEY_ID),
+                        user       : getSecretText(env.DEPLOY_USER),
+                        password   : getPassword(env.CREDENTIALS_ID),
                         allowAnyHosts: true
                     ]
 
