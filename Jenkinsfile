@@ -2,10 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_USER = 'BOT_USER'
-        DEPLOY_HOST = 'BOT_SERVER'
-        CREDENTIALS_ID = 'BOT_SERVER_CREDS'
+        DEPLOY_HOST = 'SSH_SERVER'
         PROD_TOKEN = 'BOT_TOKEN'
+        SSH_KEY_ID = 'SSH_KEY'
         GRAFANA_USER = 'GRAFANA_USER'
         GRAFANA_PASSWORD = 'GRAFANA_PASSWORD'
     }
@@ -32,8 +31,8 @@ pipeline {
                     def remote = [
                         name       : 'target-server',
                         host       : getSecretText(env.DEPLOY_HOST),
-                        user       : getSecretText(env.DEPLOY_USER),
-                        password   : getPassword(env.CREDENTIALS_ID),
+                        user       : getSshUser(env.SSH_KEY_ID),
+                        identity   : getSshKey(env.SSH_KEY_ID),
                         allowAnyHosts: true
                     ]
 
@@ -81,8 +80,8 @@ pipeline {
                     def remote = [
                         name       : 'target-server',
                         host       : getSecretText(env.DEPLOY_HOST),
-                        user       : getSecretText(env.DEPLOY_USER),
-                        password   : getPassword(env.CREDENTIALS_ID),
+                        user       : getSshUser(env.SSH_KEY_ID),
+                        identity   : getSshKey(env.SSH_KEY_ID),
                         allowAnyHosts: true
                     ]
 
@@ -105,8 +104,8 @@ EOF
                     def remote = [
                         name       : 'target-server',
                         host       : getSecretText(env.DEPLOY_HOST),
-                        user       : getSecretText(env.DEPLOY_USER),
-                        password   : getPassword(env.CREDENTIALS_ID),
+                        user       : getSshUser(env.SSH_KEY_ID),
+                        identity   : getSshKey(env.SSH_KEY_ID),
                         allowAnyHosts: true
                     ]
 
@@ -130,6 +129,21 @@ EOF
 def getPassword(String credentialsId) {
     withCredentials([usernamePassword(credentialsId: credentialsId, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
         return env.PASS
+    }
+}
+
+// Функция для получения SSH ключа из Credentials
+def getSshKey(String credentialsId) {
+    withCredentials([sshUserPrivateKey(credentialsId: credentialsId, keyFileVariable: 'KEY_FILE', usernameVariable: 'SSH_USER', passphraseVariable: 'PASSPHRASE')]) {
+        def keyContent = readFile(KEY_FILE)
+        return keyContent
+    }
+}
+
+// Функция для получения пользователя ключа из Credentials
+def getSshUser(String credentialsId) {
+    withCredentials([sshUserPrivateKey(credentialsId: credentialsId, keyFileVariable: 'KEY_FILE', usernameVariable: 'SSH_USER', passphraseVariable: 'PASSPHRASE')]) {
+        return env.SSH_USER
     }
 }
 
