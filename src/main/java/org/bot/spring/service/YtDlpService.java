@@ -4,11 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.bot.spring.configuration.properties.DownloadProperties;
-import org.bot.spring.dto.MessageContext;
 import org.bot.spring.dto.DownloadVideoCommand;
+import org.bot.spring.dto.MessageContext;
 import org.bot.spring.dto.VideoFormatDto;
 import org.bot.spring.exceptions.YtDlpExitException;
-import org.bot.spring.service.proxy.ProxyProvider;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -196,7 +195,11 @@ public class YtDlpService {
     }
 
     public String createFilename(MessageContext ctx) {
-        return String.format("%d-%d-%s.mp4", ctx.getChatId(), ctx.getMessageId(), ctx.getUsername() != null ? ctx.getUsername() : "unknown");
+        return createFilename(ctx, null);
+    }
+
+    public String createFilename(MessageContext ctx, String extension) {
+        return String.format("%d-%d-%s.%s", ctx.getChatId(), ctx.getMessageId(), ctx.getUsername() != null ? ctx.getUsername() : "unknown", extension != null ? extension : "mp4");
     }
 
     public String pathToDownload() {
