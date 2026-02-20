@@ -13,6 +13,7 @@ RUN pip install ffmpeg
 
 RUN apk update && apk upgrade
 RUN apk add --no-cache openjdk25-jdk
+RUN apk add ffmpeg
 
 RUN mkdir -p /var/log/spring-bot
 

@@ -14,6 +14,7 @@ public class DownloadVideoCommand {
     String folderPath;
     String fileName;
     String proxy;
+    String format;
 
     public List<String> getListCommands() {
         List<String> list = new ArrayList<>();
@@ -33,6 +34,10 @@ public class DownloadVideoCommand {
         if (fileName != null) {
             list.add("-o");
             list.add(fileName);
+        }
+        if (format != null) {
+            list.add("-t");
+            list.add(format);
         }
         list.add(videoUrl);
 
