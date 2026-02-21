@@ -48,7 +48,7 @@ public class ProxyProvider {
      * <p>
      * Вызывается при старте и каждые 5 минут по расписанию.
      */
-    @Scheduled(fixedRate = 300_000)
+    @Scheduled(fixedRate = 300_000_00)
     public void refreshAll() {
         log.info("Обновление всех источников прокси...");
 
