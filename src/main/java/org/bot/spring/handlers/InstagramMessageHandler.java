@@ -55,17 +55,17 @@ public class InstagramMessageHandler extends AbstractMessageHandler {
         VideoFormatDto maxSize = ytDlpService.getMaxVideoSizeForInstagram(videoUrl);
         // Проверить размер файла
         checkFileSizeAndNotify(maxSize.getFileSizeInMB().divide(BigDecimal.TWO, RoundingMode.DOWN));
-        DownloadVideoCommand commandTemplate = null;
+        DownloadVideoCommand command = null;
+        //Прокси пока выключены
         String proxy = proxyProvider.getCurrentProxy();
         for (int i = 0; i < 3; i++) {
             try {
-                commandTemplate = DownloadVideoCommand.builder()
+                command = DownloadVideoCommand.builder()
                         .fileName(ytDlpService.createFilename(context))
                         .videoUrl(videoUrl)
                         .folderPath(ytDlpService.pathToDownload())
-                        .proxy(proxy)
                         .build();
-                ytDlpService.downloadVideo(commandTemplate);
+                ytDlpService.downloadVideo(command);
             } catch (Exception e) {
                 i++;
                 if (i == 3) throw new RuntimeException("Не удалось скачать видео через прокси");
@@ -73,8 +73,8 @@ public class InstagramMessageHandler extends AbstractMessageHandler {
                 log.info("Повторная попытка скачать через прокси - {}", proxy);
             }
         }
-        if (commandTemplate == null) throw new RuntimeException("Не удалось скачать видео через прокси");
-        return commandTemplate.getOutputPath();
+        if (command == null) throw new RuntimeException("Не удалось скачать видео через прокси");
+        return command.getOutputPath();
     }
 
 }
