@@ -25,6 +25,8 @@ public class VkVideoMessageHandler extends AbstractMessageHandler {
             "https://www.vk.ru",
             "http://vk.ru",
             "http://www.vk.ru",
+            "https://vkvideo.ru",
+            "http://vkvideo.ru"
     };
 
     public VkVideoMessageHandler(YtDlpService ytDlpService, TelegramMessageService telegramMessageService) {
@@ -43,7 +45,7 @@ public class VkVideoMessageHandler extends AbstractMessageHandler {
             }
         }
         // Fallback: ссылка где-то внутри текста
-        return text.contains("vk.com") || text.contains("vk.ru");
+        return text.contains("vk.com") || text.contains("vk.ru") || text.contains("vkvideo.ru");
     }
 
     @Override
