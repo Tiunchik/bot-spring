@@ -47,7 +47,7 @@ public abstract class AbstractMessageHandler implements MessageHandler {
 
             // Шаг 4: Отправить результат
             File videoFile = new File(filePath);
-            String messageText = "@" + context.getUsername() + ": " + textWithoutUrl;
+            String messageText = "Видео отправлено пользователем " + context.getUsername() + ": " + textWithoutUrl;
             Object videoSendResult = telegramMessageService.sendVideo(context.getChatId(), videoFile, videoUrl);
             if (nonNull(videoSendResult)) {
                 telegramMessageService.editTextMessage(context.getChatId(), message.getMessageId(), messageText);
