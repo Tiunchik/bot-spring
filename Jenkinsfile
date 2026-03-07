@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'release', url: 'https://github.com/Tiunchik/bot-spring.git'
+                git branch: 'old', url: 'https://github.com/Tiunchik/bot-spring.git'
             }
         }
         stage('Make gradlew executable') {
