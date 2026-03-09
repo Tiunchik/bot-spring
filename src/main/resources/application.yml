@@ -1,4 +1,6 @@
 spring:
+  main:
+    show-banner: false
   application:
     name: spring-bot
   threads:
